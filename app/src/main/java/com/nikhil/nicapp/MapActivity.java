@@ -36,28 +36,29 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         if (mapFragment != null) {
             mapFragment.getMapAsync(this);
         }
-        findViewById(R.id.select).setOnClickListener(view -> {
-            sendResult();
-        });
+        findViewById(R.id.select).setOnClickListener(view -> sendResult());
     }
 
     @Override
     public void onMapReady(@NonNull GoogleMap map) {
         googleMap = map;
-        googleMap.setOnMapClickListener(latLng -> {
-            selectedLatitude = latLng.latitude;
-            selectedLongitude = latLng.longitude;
-            getAddressFromLocation();
-            LatLng centerLatLng = googleMap.getCameraPosition().target;
-            googleMap.clear();
-            MarkerOptions markerOptions = new MarkerOptions()
-                    .position(centerLatLng)
-                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
-                    .title("Location");
-            googleMap.addMarker(markerOptions);
-        });
+        googleMap.setOnMapClickListener(this::setLatlng);
         LatLng defaultLocation = new LatLng(19.5944, 81.6615);
         googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(defaultLocation, 15.0f));
+        setLatlng(defaultLocation);
+    }
+
+    private void setLatlng(LatLng latlng) {
+        selectedLatitude = latlng.latitude;
+        selectedLongitude = latlng.longitude;
+        getAddressFromLocation();
+        LatLng centerLatLng = googleMap.getCameraPosition().target;
+        googleMap.clear();
+        MarkerOptions markerOptions = new MarkerOptions()
+                .position(centerLatLng)
+                .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
+                .title("Location");
+        googleMap.addMarker(markerOptions);
     }
 
     private void getAddressFromLocation() {

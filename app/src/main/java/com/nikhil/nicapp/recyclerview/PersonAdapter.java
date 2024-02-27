@@ -1,12 +1,16 @@
 package com.nikhil.nicapp.recyclerview;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.nikhil.nicapp.PersonFormActivity;
 import com.nikhil.nicapp.databinding.ItemPersonBinding;
 import com.nikhil.nicapp.databinding.ItemShimmerBinding;
 import com.nikhil.nicapp.model.Person;
@@ -15,7 +19,7 @@ import java.util.List;
 
 
 public class PersonAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
-    private Context context;
+    private final Context context;
     private List<Person> personList;
 
     private static final int VIEW_TYPE_ITEM = 0;
@@ -75,9 +79,19 @@ public class PersonAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>
             this.binding = binding;
         }
 
+        private <T extends Activity> View.OnClickListener openActivity(Person person) {
+            return view -> {
+                Intent intent = new Intent(context, PersonFormActivity.class);
+                intent.putExtra(PersonFormActivity.INTENT_PERSON, person);
+                context.startActivity(intent);
+            };
+        }
+
         public void bind(Person person) {
             binding.setPerson(person);
+            binding.editIcon.setOnClickListener(openActivity(person));
         }
+
     }
 
 }

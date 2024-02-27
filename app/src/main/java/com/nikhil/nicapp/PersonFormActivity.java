@@ -8,6 +8,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 
 import androidx.annotation.NonNull;
@@ -32,6 +33,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 
 public class PersonFormActivity extends AppCompatActivity implements OnMapReadyCallback {
+    public static final String INTENT_PERSON = "person";
     private GoogleMap googleMap;
     private double selectedLatitude = 19.5944;
     private double selectedLongitude = 81.6615;
@@ -48,21 +50,45 @@ public class PersonFormActivity extends AppCompatActivity implements OnMapReadyC
     private PersonFormBinding binding;
     private static final int PICK_IMAGE_REQUEST = 1;
     private ThreadPoolExecutor executor;
-
+    Person personFromIntent;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = PersonFormBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-        binding.save.setOnClickListener(view -> {
-            validateAndSave();
-        });
+        binding.save.setOnClickListener(view -> validateAndSave());
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.mapFragment);
-        mapFragment.getMapAsync(this);
+        if (mapFragment != null) {
+            mapFragment.getMapAsync(this);
+        }
         binding.profileImage.setOnClickListener(selectImage());
         appDatabase = AppDatabase.getInstance(getApplicationContext());
         executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(1);
+        personFromIntent = getIntent().getParcelableExtra(INTENT_PERSON);
+        if (personFromIntent != null) {
+            populate(personFromIntent);
+        }
+    }
+
+    private void populate(Person person) {
+        binding.nameEditText.setText(person.getName());
+        binding.isMarriedCheckBox.setChecked(person.isMarried());
+        if (person.getGender().equals(getString(R.string.male))) {
+            binding.maleRadioButton.setChecked(true);
+        } else {
+            binding.femaleRadioButton.setChecked(true);
+        }
+        if (person.getImageUri() != null) {
+            selectedImageUri = Uri.parse(person.getImageUri());
+            setImage();
+        }
+        selectedLatitude = person.getLatitude();
+        selectedLongitude = person.getLongitude();
+        selectedAddress = person.getAddress();
+        if (googleMap != null) {
+            onMapReady(googleMap);
+        }
     }
 
     private void validateAndSave() {
@@ -86,14 +112,25 @@ public class PersonFormActivity extends AppCompatActivity implements OnMapReadyC
         savePersons(person);
     }
 
-    private void savePersons(Person person) {
+    private void savePersons(Person newPerson) {
         executor.execute(() -> {
-            long insert = appDatabase.personAppDao().insert(person);
-            if (insert != -1) {
-                finish();
+            if (personFromIntent == null) {
+                long insert = appDatabase.personAppDao().insert(newPerson);
+                if (insert != -1) {
+                    finish();
+                } else {
+                    showSnackBarWithButton("Something went wrong try again!!");
+                }
             } else {
-                showSnackBarWithButton("Something went wrong try again!!");
+                newPerson.setId(personFromIntent.getId());
+                int update = appDatabase.personAppDao().update(newPerson);
+                if (update != -1) {
+                    finish();
+                } else {
+                    showSnackBarWithButton("Something went wrong try again!!");
+                }
             }
+
         });
     }
 
@@ -121,7 +158,6 @@ public class PersonFormActivity extends AppCompatActivity implements OnMapReadyC
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null && data.getData() != null) {
-            binding.imageUriEditText.setText(data.getData().toString());
             Glide.with(this)
                     .asBitmap()
                     .load(data.getData())
@@ -134,10 +170,7 @@ public class PersonFormActivity extends AppCompatActivity implements OnMapReadyC
                             byte[] compressedByteArray = baos.toByteArray();
                             Bitmap bitmap = BitmapFactory.decodeByteArray(compressedByteArray, 0, compressedByteArray.length);
                             selectedImageUri = saveBitmap(PersonFormActivity.this, bitmap);
-                            Glide.with(PersonFormActivity.this)
-                                    .load(selectedImageUri)
-                                    .circleCrop()
-                                    .into(binding.profileImage);
+                            setImage();
                         }
 
                         @Override
@@ -147,25 +180,30 @@ public class PersonFormActivity extends AppCompatActivity implements OnMapReadyC
                     });
         }
         if (requestCode == MAP_PICK_REQUEST) {
+            Log.d("okhttp PersonFormActivity", "onActivityResult: ${}" + resultCode + data);
             if (resultCode == RESULT_OK && data != null) {
                 selectedLatitude = data.getDoubleExtra("latitude", 0.0);
                 selectedLongitude = data.getDoubleExtra("longitude", 0.0);
                 selectedAddress = data.getStringExtra("address");
-                if (selectedAddress == null) selectedAddress = "";
-                moveCamera();
+                if (selectedAddress == null) {
+                    selectedAddress = "";
+                } else moveCamera();
             }
         }
+    }
+
+    private void setImage() {
+        Glide.with(PersonFormActivity.this)
+                .load(selectedImageUri)
+                .circleCrop()
+                .into(binding.profileImage);
     }
 
     @Override
     public void onMapReady(@NonNull GoogleMap m) {
         googleMap = m;
-        googleMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
-            @Override
-            public void onMapClick(@NonNull LatLng latLng) {
-                getLocation();
-            }
-        });
+        googleMap.getUiSettings().setAllGesturesEnabled(false);
+        googleMap.setOnMapClickListener(latLng -> getLocation());
         moveCamera();
     }
 

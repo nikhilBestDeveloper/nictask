@@ -1,10 +1,13 @@
 package com.nikhil.nicapp.model;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
 @Entity(tableName = "persons")
-public class Person {
+public class Person implements Parcelable {
     @PrimaryKey(autoGenerate = true)
     private int id;
     private String name;
@@ -14,8 +17,48 @@ public class Person {
     private String imageUri;
     private double latitude;
     private double longitude;
+    public Person() {
+    }
 
+    public Person(Parcel in) {
+        id = in.readInt();
+        name = in.readString();
+        isMarried = in.readByte() != 0;
+        gender = in.readString();
+        address = in.readString();
+        imageUri = in.readString();
+        latitude = in.readDouble();
+        longitude = in.readDouble();
+    }
 
+    public static final Creator<Person> CREATOR = new Creator<Person>() {
+        @Override
+        public Person createFromParcel(Parcel in) {
+            return new Person(in);
+        }
+
+        @Override
+        public Person[] newArray(int size) {
+            return new Person[size];
+        }
+    };
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeInt(id);
+        dest.writeString(name);
+        dest.writeByte((byte) (isMarried ? 1 : 0));
+        dest.writeString(gender);
+        dest.writeString(address);
+        dest.writeString(imageUri);
+        dest.writeDouble(latitude);
+        dest.writeDouble(longitude);
+    }
     public String getAddress() {
         return address;
     }

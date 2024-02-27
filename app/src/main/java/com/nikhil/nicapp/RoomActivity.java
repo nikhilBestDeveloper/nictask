@@ -17,6 +17,7 @@ import com.nikhil.nicapp.model.SwipeToDeleteCallback;
 import com.nikhil.nicapp.recyclerview.PersonAdapter;
 import com.nikhil.nicapp.recyclerview.SpaceItemDecorationVertical;
 import com.nikhil.nicapp.room.AppDatabase;
+import com.nikhil.nicapp.utils.DeleteDialog;
 
 import java.util.Collections;
 import java.util.List;
@@ -31,6 +32,7 @@ public class RoomActivity extends AppCompatActivity {
     private LinearLayoutManager linearLayoutManager;
     private PersonAdapter adapter;
     private ThreadPoolExecutor executor;
+    ItemTouchHelper itemTouchHelper;
     private SwipeToDeleteCallback.SwipeToDeleteListener deleteListener;
 
 
@@ -50,19 +52,28 @@ public class RoomActivity extends AppCompatActivity {
         binding.recyclerView.setLayoutManager(linearLayoutManager);
         adapter = new PersonAdapter(RoomActivity.this, persons);
         binding.recyclerView.setAdapter(adapter);
-        int spacingInPixels = getResources().getDimensionPixelSize(R.dimen.spacing);
+        int spacingInPixels = getResources().getDimensionPixelSize(R.dimen.spacing_less);
         RecyclerView.ItemDecoration itemDecoration = new SpaceItemDecorationVertical(this, spacingInPixels);
         binding.recyclerView.addItemDecoration(itemDecoration);
-        deleteListener = new SwipeToDeleteCallback.SwipeToDeleteListener() {
-            @Override
-            public void onSwipe(int position) {
-                delete(persons.get(position));
-            }
-        };
+        deleteListener = position -> askDelete(persons.get(position));
         SwipeToDeleteCallback swipeToDeleteCallback = new SwipeToDeleteCallback(this, deleteListener);
-        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(swipeToDeleteCallback);
+        itemTouchHelper = new ItemTouchHelper(swipeToDeleteCallback);
         itemTouchHelper.attachToRecyclerView(binding.recyclerView);
         loadPersons();
+    }
+
+    private void askDelete(Person person) {
+        DeleteDialog.showDeleteDialog(this, new DeleteDialog.DeleteDialogListener() {
+            @Override
+            public void onDeleteConfirmed() {
+                delete(person);
+            }
+
+            @Override
+            public void onCancelClicked() {
+                adapter.notifyItemChanged(persons.indexOf(person));
+            }
+        });
     }
 
     private void delete(Person person) {

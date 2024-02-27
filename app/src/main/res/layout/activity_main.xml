@@ -11,6 +11,7 @@
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
         app:title="@string/nic"
+        app:titleTextColor="@color/black"
         android:layout_width="match_parent"
         android:layout_height="@dimen/toolbar_height"
         android:layout_alignParentTop="true" />

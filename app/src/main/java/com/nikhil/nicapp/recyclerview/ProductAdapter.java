@@ -10,7 +10,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.nikhil.nicapp.R;
 import com.nikhil.nicapp.databinding.ItemProductBinding;
-import com.nikhil.nicapp.databinding.ItemShimmerBinding;
 import com.nikhil.nicapp.model.Product;
 
 import java.util.ArrayList;
@@ -38,8 +37,8 @@ public class ProductAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         if (viewType == VIEW_TYPE_SHIMMER) {
-            ItemShimmerBinding binding = ItemShimmerBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false);
-            return new ShimmerViewHolder(binding);
+            View shimmerView = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_shimmer, parent, false);
+            return new ShimmerViewHolder(shimmerView);
         } else {
             ItemProductBinding binding = ItemProductBinding.inflate(LayoutInflater.from(parent.getContext()), parent, false);
             return new ProductViewHolder(binding);
@@ -64,14 +63,12 @@ public class ProductAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
     public void setProductList(List<Product> productList) {
         this.productList = productList;
-       showShimmer = false;
+        if (!this.productList.isEmpty()) showShimmer = false;
     }
 
     static class ProductViewHolder extends RecyclerView.ViewHolder {
 
         private final ItemProductBinding binding;
-        private LinearLayoutManager linearLayoutManager;
-        private ImageAdapter adapter;
 
         public ProductViewHolder(@NonNull ItemProductBinding binding) {
             super(binding.getRoot());
@@ -90,9 +87,9 @@ public class ProductAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         }
 
         private void setUpProductImagesRecyclerView(Product product) {
-            linearLayoutManager = new LinearLayoutManager(binding.recyclerView.getContext(), LinearLayoutManager.HORIZONTAL, false);
+            LinearLayoutManager linearLayoutManager = new LinearLayoutManager(binding.recyclerView.getContext(), LinearLayoutManager.HORIZONTAL, false);
             binding.recyclerView.setLayoutManager(linearLayoutManager);
-            adapter = new ImageAdapter(binding.recyclerView.getContext(), new ArrayList<>(product.getImages()));
+            ImageAdapter adapter = new ImageAdapter(binding.recyclerView.getContext(), new ArrayList<>(product.getImages()));
             binding.recyclerView.setAdapter(adapter);
             int spacingInPixels = binding.recyclerView.getResources().getDimensionPixelSize(R.dimen.spacing);
             RecyclerView.ItemDecoration itemDecoration = new SpaceItemDecorationHorizontal(binding.recyclerView.getContext(), spacingInPixels);
