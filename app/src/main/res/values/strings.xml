@@ -1,0 +1,32 @@
+<resources>
+    <string name="app_name">NICApp</string>
+    <string name="title_activity_main">MainActivity</string>
+    <string name="first_fragment_label">First Fragment</string>
+    <string name="second_fragment_label">Second Fragment</string>
+    <string name="next">Next</string>
+    <string name="previous">Previous</string>
+    <string name="data_with_room">Data with Room</string>
+    <string name="data_with_api">Data with API</string>
+    <string name="nic">NIC</string>
+    <string name="api">Api</string>
+    <string name="brand">Brand : </string>
+    <string name="title">Title : </string>
+    <string name="description">Description: </string>
+    <string name="price">Price : </string>
+    <string name="category">Category : </string>
+    <string name="stock">"Stock : "</string>
+    <string name="rating">Ratings : </string>
+    <string name="save">Save</string>
+    <string name="image_uri">Image URI</string>
+    <string name="gender">Gender</string>
+    <string name="marital_status">Marital Status</string>
+    <string name="name">Name</string>
+    <string name="married">Married</string>
+    <string name="not_married">Not Married</string>
+    <string name="title_activity_perdon_form">PerdonFormActivity</string>
+    <string name="female">Female</string>
+    <string name="male">Male</string>
+    <string name="pick_image">Profile Image</string>
+    <string name="select_location">Select location</string>
+    <string name="edit">EDIT</string>
+</resources>
